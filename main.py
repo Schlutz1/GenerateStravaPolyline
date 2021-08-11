@@ -1,4 +1,3 @@
-
 import requests as r
 import sqlite3
 import os, sys
@@ -19,13 +18,6 @@ conn = sqlite3.connect(os.path.join(abs_path, db_file))
 
 # sandbox
 stravaHandler = StravaHandler()
-# stravaHandler.refreshAccessToken(conn)
-
 access_token = stravaHandler.getAccessToken(conn)
-print(access_token)
 
-athlete_uri = "https://www.strava.com/api/v3/athlete"
-
-stravaHandler.getAthleteProfile(
-    access_token
-)
+stravaHandler.listAthleteActivities(access_token)

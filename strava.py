@@ -82,11 +82,12 @@ class StravaHandler():
 
            access_token = refreshAccessToken(conn)
         else:
+            print("{id}: loading token from file".format(id = self._id))
             access_token = access_token_lookup['access_token'][0]
 
         return access_token
 
-    def getAthleteProfile(self, access_token):
+    def getAthleteId(self, access_token):
         ''' use to get sample athlete profile data from Strava API '''
 
         header_target = 'Bearer {access_token}'.format(access_token = access_token)
@@ -96,14 +97,27 @@ class StravaHandler():
             , headers=headers
         )
 
-                if resp.status_code != 200:
-            print("{_id}: getAthleteProfile post returned status_code != 200")
+        if resp.status_code != 200:
+            print("{_id}: getAthleteID post returned status_code != 200")
         
         # conver to table, append athelete ID, and write to local database
         resp_json = json.loads(resp.text)
 
-        return resp_json
+        return resp_json['id']
 
-    def getStravaData(self, uri, access_token):
-        ''' gets data from some strava api endpoint, requires valid access token '''
-        return None
+    def listAthleteActivities(self, access_token):
+        ''' Returns the activities of an athlete for a specific identifier. Requires activity:read. 
+        Only Me activities will be filtered out unless requested by a token with activity:read_all. '''
+        
+        header_target = 'Bearer {access_token}'.format(access_token = access_token)
+        headers = {'Authorization': header_target}
+        resp = r.get(
+            self.athlete_uri + '/activities'
+            , headers=headers
+        )
+
+        print(resp.request.url)
+        print(resp.request.body)
+        print(resp.request.headers)
+
+        print(resp.text)
