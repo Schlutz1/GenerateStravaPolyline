@@ -1,8 +1,10 @@
 
 import requests as r
+import sqlite3
 import os, sys
 
 # Local python scripts
+from strava import StravaHandler
 import settings
 
 
@@ -11,5 +13,19 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(abs_path)
 settings.getEnv()
 
-print(os.getenv("STRAVA_CLIENT_ID"))
+db_file = "local.db"
+conn = sqlite3.connect(os.path.join(abs_path, db_file))
 
+
+# sandbox
+stravaHandler = StravaHandler()
+# stravaHandler.refreshAccessToken(conn)
+
+access_token = stravaHandler.getAccessToken(conn)
+print(access_token)
+
+athlete_uri = "https://www.strava.com/api/v3/athlete"
+
+stravaHandler.getAthleteProfile(
+    access_token
+)

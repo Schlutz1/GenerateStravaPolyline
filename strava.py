@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Module implements authentication flow for Strava app
+"""Module interacts with strava API
     Documentation on Strava auth flow can be found here:
     * https://developers.strava.com/docs/getting-started 
     * https://developers.strava.com/docs/authentication/
     
-    App assumes the existence of some:
+    Handler assumes the existence of some:
     * client_id
     * client_secret
-    * refresh_token 
+    * refresh_token
+    Which are created using the above links 
 """
 
 # standard libs
@@ -19,15 +20,16 @@ import json
 import time
 import os
 
-# handler authorisation flow
-class AuthHandler():
+# handles interactions with Strava API
+class StravaHandler():
 
     def __init__(self):
         
-        self._id = "authentication.py"
+        self._id = "strava.StravaHandler"
 
         # definitions for strava app
         self.refresh_uri = "https://www.strava.com/api/v3/oauth/token"
+        self.athlete_uri = "https://www.strava.com/api/v3/athlete"
 
         # could potentially do this via dependency injection if multiple users for the app
         self.client_id = os.getenv("STRAVA_CLIENT_ID")
@@ -50,7 +52,7 @@ class AuthHandler():
         resp = r.post(self.refresh_uri, data=payload)
 
         if resp.status_code != 200:
-            print("{_id}: refreshAccessToken post returnd status_code != 200")
+            print("{_id}: refreshAccessToken post returned status_code != 200")
         
         # conver to table, append athelete ID, and write to local database
         resp_json = json.loads(resp.text)
@@ -83,3 +85,25 @@ class AuthHandler():
             access_token = access_token_lookup['access_token'][0]
 
         return access_token
+
+    def getAthleteProfile(self, access_token):
+        ''' use to get sample athlete profile data from Strava API '''
+
+        header_target = 'Bearer {access_token}'.format(access_token = access_token)
+        headers = {'Authorization': header_target}
+        resp = r.get(
+            self.athlete_uri
+            , headers=headers
+        )
+
+                if resp.status_code != 200:
+            print("{_id}: getAthleteProfile post returned status_code != 200")
+        
+        # conver to table, append athelete ID, and write to local database
+        resp_json = json.loads(resp.text)
+
+        return resp_json
+
+    def getStravaData(self, uri, access_token):
+        ''' gets data from some strava api endpoint, requires valid access token '''
+        return None
