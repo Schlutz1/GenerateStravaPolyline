@@ -1,24 +1,14 @@
 
-import os
-import requests as r
-
-
-# system globals
-abs_path = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(abs_path)
-settings.getEnv()
-
-
 class AuthHandler():
     '''
     Documentation on Strava auth flow can be found here:
-    - https://developers.strava.com/docs/getting-started 
-    - https://developers.strava.com/docs/authentication/
+    * https://developers.strava.com/docs/getting-started 
+    * https://developers.strava.com/docs/authentication/
     
     App assumes the existence of some:
-    - client_id
-    - client_secret
-    - refresh_token 
+    * client_id
+    * client_secret
+    * refresh_token 
     '''
 
     def __init__(self):
