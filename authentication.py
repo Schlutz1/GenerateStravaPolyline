@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-class AuthHandler():
-    '''
+"""Module implements authentication flow for Strava app
     Documentation on Strava auth flow can be found here:
     * https://developers.strava.com/docs/getting-started 
     * https://developers.strava.com/docs/authentication/
@@ -9,23 +10,76 @@ class AuthHandler():
     * client_id
     * client_secret
     * refresh_token 
-    '''
+"""
+
+# standard libs
+import requests as r
+import pandas as pd
+import json
+import time
+import os
+
+# handler authorisation flow
+class AuthHandler():
 
     def __init__(self):
         
+        self._id = "authentication.py"
+
         # definitions for strava app
         self.refresh_uri = "https://www.strava.com/api/v3/oauth/token"
 
+        # could potentially do this via dependency injection if multiple users for the app
+        self.client_id = os.getenv("STRAVA_CLIENT_ID")
+        self.athlete_id = os.getenv("STRAVA_ATHLETE_ID")
+        self.refresh_token = os.getenv("STRAVA_REFRESH_TOKEN")
+        self.client_secret = os.getenv("STRAVA_CLIENT_SECRET")
 
-if __name__ == "__main__" :
+    def refreshAccessToken(self, conn):
+        ''' refreshes expired access token for user account '''
+        
+        # generate payload for refresh
+        payload = {
+            'client_id': self.client_id
+            , 'client_secret': self.client_secret
+            , 'refresh_token': self.refresh_token
+            , 'grant_type': 'refresh_token'
+        }
+        
+        # post top refresh uri
+        resp = r.post(self.refresh_uri, data=payload)
 
-    access_token = "01c8ac9f50173cd1478441aaeb8ac44628c5a1c7"
-    databaseHandler = DatabaseHandler()
-    
-    df_activities = databaseHandler.getStravaActivities(access_token)
-    print(df_activities.shape)
-    print(df_activities)
-    # df_activities.to_sql(
-    #     'sandbox'
-    #     , conn
-    # )
+        if resp.status_code != 200:
+            print("{_id}: refreshAccessToken post returnd status_code != 200")
+        
+        # conver to table, append athelete ID, and write to local database
+        resp_json = json.loads(resp.text)
+        resp_json['athlete_id'] = self.athlete_id
+
+        access_token_table = pd.DataFrame([resp_json])
+        access_token_table.to_sql(
+            'access_tokens'
+            , conn
+            , if_exists = 'replace' # can lazily replace here, as only one athlete
+        )
+        
+        # return access token
+        return resp_json['access_token']
+
+    def getAccessToken(self, conn):
+        ''' gets access token, optionally refreshes as required '''
+
+        access_token_lookup = pd.read_sql(
+            'SELECT access_token, expires_at FROM access_tokens WHERE athlete_id = 123456;'
+            , conn
+        )
+
+        current_epoch_time = int(time.time())
+        if current_epoch_time >= access_token_lookup['expires_at'][0]:
+           # if cached token is expired generate new token
+
+           access_token = refreshAccessToken(conn)
+        else:
+            access_token = access_token_lookup['access_token'][0]
+
+        return access_token
