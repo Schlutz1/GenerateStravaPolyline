@@ -37,8 +37,9 @@ class StravaHandler():
         self.refresh_token = os.getenv("STRAVA_REFRESH_TOKEN")
         self.client_secret = os.getenv("STRAVA_CLIENT_SECRET")
 
-    def refreshAccessToken(self, conn):
+    def refreshAccessToken(self, conn) -> str:
         ''' refreshes expired access token for user account '''
+        print(f"{self._id}: refreshing access token")
         
         # generate payload for refresh
         payload = {
@@ -52,7 +53,7 @@ class StravaHandler():
         resp = r.post(self.refresh_uri, data=payload)
 
         if resp.status_code != 200:
-            print("{_id}: refreshAccessToken post returned status_code != 200")
+            print(f"{self._id}: refreshAccessToken post returned status_code != 200")
         
         # conver to table, append athelete ID, and write to local database
         resp_json = json.loads(resp.text)
@@ -68,7 +69,7 @@ class StravaHandler():
         # return access token
         return resp_json['access_token']
 
-    def getAccessToken(self, conn):
+    def getAccessToken(self, conn) -> str:
         ''' gets access token, optionally refreshes as required '''
 
         access_token_lookup = pd.read_sql(
@@ -80,17 +81,17 @@ class StravaHandler():
         if current_epoch_time >= access_token_lookup['expires_at'][0]:
            # if cached token is expired generate new token
 
-           access_token = refreshAccessToken(conn)
+           access_token = self.refreshAccessToken(conn)
         else:
-            print("{id}: loading token from file".format(id = self._id))
+            print(f"{self._id}: loading token from file")
             access_token = access_token_lookup['access_token'][0]
 
         return access_token
 
-    def getAthleteId(self, access_token):
-        ''' use to get sample athlete profile data from Strava API '''
+    def getAthleteId(self, access_token) -> str:
+        ''' use to get athlete Id from Strava API '''
 
-        header_target = 'Bearer {access_token}'.format(access_token = access_token)
+        header_target = f'Bearer {access_token}'
         headers = {'Authorization': header_target}
         resp = r.get(
             self.athlete_uri
@@ -98,18 +99,18 @@ class StravaHandler():
         )
 
         if resp.status_code != 200:
-            print("{_id}: getAthleteID post returned status_code != 200")
+            print(f"{self._id}: getAthleteProfile post returned status_code != 200")
         
         # conver to table, append athelete ID, and write to local database
-        resp_json = json.loads(resp.text)
+        profile = json.loads(resp.text)
 
-        return resp_json['id']
+        return profile['id']
 
     def listAthleteActivities(self, access_token):
         ''' Returns the activities of an athlete for a specific identifier. Requires activity:read. 
         Only Me activities will be filtered out unless requested by a token with activity:read_all. '''
         
-        header_target = 'Bearer {access_token}'.format(access_token = access_token)
+        header_target = f'Bearer {access_token}'
         headers = {'Authorization': header_target}
         resp = r.get(
             self.athlete_uri + '/activities'
