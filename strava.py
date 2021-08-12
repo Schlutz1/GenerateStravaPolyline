@@ -16,9 +16,16 @@
 # standard libs
 import requests as r
 import pandas as pd
+import pprint as pp
 import json
 import time
 import os
+
+
+# TODO: refactor all REST API calls into method
+def _callStravaEndpoint():
+    ''' Private fn, makes call to Strava API'''
+    return None
 
 # handles interactions with Strava API
 class StravaHandler():
@@ -30,6 +37,7 @@ class StravaHandler():
         # definitions for strava app
         self.refresh_uri = "https://www.strava.com/api/v3/oauth/token"
         self.athlete_uri = "https://www.strava.com/api/v3/athlete"
+        self.activities_uri = "https://www.strava.com/api/v3/activities"
 
         # could potentially do this via dependency injection if multiple users for the app
         self.client_id = os.getenv("STRAVA_CLIENT_ID")
@@ -78,7 +86,7 @@ class StravaHandler():
         )
 
         current_epoch_time = int(time.time())
-        if current_epoch_time >= access_token_lookup['expires_at'][0]:
+        if current_epoch_time >= access_token_lookup['expires_at'][0] :
            # if cached token is expired generate new token
 
            access_token = self.refreshAccessToken(conn)
@@ -101,24 +109,40 @@ class StravaHandler():
         if resp.status_code != 200:
             print(f"{self._id}: getAthleteProfile post returned status_code != 200")
         
-        # conver to table, append athelete ID, and write to local database
         profile = json.loads(resp.text)
-
         return profile['id']
 
-    def listAthleteActivities(self, access_token):
-        ''' Returns the activities of an athlete for a specific identifier. Requires activity:read. 
-        Only Me activities will be filtered out unless requested by a token with activity:read_all. '''
+    def listActivitiesById(self, access_token):
+        ''' Returns the activities of an athlete for a specific athelete ID '''
         
         header_target = f'Bearer {access_token}'
         headers = {'Authorization': header_target}
+        payload = {
+            # 'before': 0
+            # 'after': 0
+            'page': 1
+            , 'per_page': 5
+        }
+
         resp = r.get(
             self.athlete_uri + '/activities'
             , headers=headers
+            , data = payload
         )
 
-        print(resp.request.url)
-        print(resp.request.body)
-        print(resp.request.headers)
+    def getActivityById(self, access_token, activity_id):
+        ''' Returns the given activity that is owned by the authenticated athlete for a specific activity ID'''
 
-        print(resp.text)
+        header_target = f'Bearer {access_token}'
+        headers = {'Authorization': header_target}
+
+        resp = r.get(
+            self.activities_uri + f'/{activity_id}'
+            , headers=headers
+            # , data = payload
+        )
+
+        activity = json.loads(resp.text)
+        pp.pprint(activity)
+
+        return None
