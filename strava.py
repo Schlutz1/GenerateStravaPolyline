@@ -82,10 +82,10 @@ class StravaHandler():
         current_epoch_time = int(time.time())
         if current_epoch_time >= access_token_lookup['expires_at'][0] :
            # if cached token is expired generate new token
-
-           access_token = self.refreshAccessToken(conn)
+            print(f"{self._id}: refreshing access token")
+            access_token = self.refreshAccessToken(conn)
         else:
-            print(f"{self._id}: loading token from file")
+            print(f"{self._id}: loading cached access token")
             access_token = access_token_lookup['access_token'][0]
 
         return access_token
@@ -118,22 +118,37 @@ class StravaHandler():
 
     def listActivities(self, access_token):
         ''' Returns the activities of an athlete for a specific athelete ID '''
-        
+        print(f"{self._id}: extracting all athlete activities")        
+
         headers = {'Authorization': f'Bearer {access_token}'}
-        payload = {
-            # 'before': 0
-            # 'after': 0
-            'page': 1
-            , 'per_page': 3
-        }
+        page = 1
+        per_page = 50
+        all_activities_list = []
 
-        activities_list = self._getStravaEndpoint(
-            uri=self.athlete_uri + '/activities'
-            , headers=headers
-            , payload=payload
-        )
+        # paginate over pages until all activities extracted
+        while True:
+            payload = {
+                'page': page
+                , 'per_page': per_page
+            }
 
-        return activities_list
+            activities_list = self._getStravaEndpoint(
+                uri=self.athlete_uri + '/activities'
+                , headers=headers
+                , payload=payload
+            )
+
+            all_activities_list += activities_list
+            # print(len(all_activities_list))
+
+            if len(activities_list) == 0:
+                break
+            else:
+                page += 1
+        
+        n_activities = len(all_activities_list)
+        print(f"{self._id}: returning {n_activities} activities")    
+        return all_activities_list
 
     def getActivityById(self, access_token, activity_id):
         ''' Returns the given activity that is owned by the authenticated athlete for a specific activity ID'''

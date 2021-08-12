@@ -24,6 +24,7 @@ build_path = os.path.join(abs_path, "build")
 db_file = "local.db"
 conn = sqlite3.connect(os.path.join(abs_path, db_file))
 
+_id = "main"
 
 # strava interactions
 stravaHandler = StravaHandler()
@@ -34,23 +35,24 @@ access_token = stravaHandler.getAccessToken(conn)
 # print(athlete_id)
 
 activities = stravaHandler.listActivities(access_token)
-# pp.pprint(activities[0])
+# pp.pprint(activities)
 
 # generate data for graphing
 polylines_list = [{
     'id': activity['id']
     , 'decoded_polyline': polyline.decode(activity['map']['summary_polyline'])
     , 'start_date_local': activity['start_date_local']
-} for activity in activities]
+} for activity in activities if activity['map']['summary_polyline'] is not None]
 
 df_polylines = pd.DataFrame(polylines_list)
+n_activities = len(df_polylines)
+print(f"{_id}: parsed {n_activities} activities")  
 
 # df_polylines.to_sql(
 #     'polyline_cache'
 #     , conn
 #     , if_exists='replace'
 # )
-
 
 # generating map of runing using folium
 m = folium.Map(
