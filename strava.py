@@ -16,7 +16,6 @@
 # standard libs
 import requests as r
 import pandas as pd
-import pprint as pp
 import json
 import time
 import os
@@ -101,7 +100,7 @@ class StravaHandler():
             , data=payload
         )
 
-        if resp.status_code != 201:
+        if resp.status_code != 200:
             print(f"{self._id}: GET {uri} returned status_code != 200")
 
         return json.loads(resp.text)
@@ -125,7 +124,7 @@ class StravaHandler():
             # 'before': 0
             # 'after': 0
             'page': 1
-            , 'per_page': 1
+            , 'per_page': 3
         }
 
         activities_list = self._getStravaEndpoint(
