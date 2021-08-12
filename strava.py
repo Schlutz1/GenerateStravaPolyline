@@ -91,8 +91,8 @@ class StravaHandler():
 
         return access_token
 
-    def _callStravaEndpoint(self, uri, headers = None, payload = None):
-        ''' Private fn, makes call to Strava API'''
+    def _getStravaEndpoint(self, uri, headers = None, payload = None):
+        ''' Private fn, gets data from Strava API'''
         
         # make get request
         resp = r.get(
@@ -101,7 +101,7 @@ class StravaHandler():
             , data=payload
         )
 
-        if resp.status_code != 200:
+        if resp.status_code != 201:
             print(f"{self._id}: GET {uri} returned status_code != 200")
 
         return json.loads(resp.text)
@@ -110,7 +110,7 @@ class StravaHandler():
         ''' use to get athlete Id from Strava API '''
 
         headers = {'Authorization': f'Bearer {access_token}'}
-        athlete_profile = self._callStravaEndpoint(
+        athlete_profile = self._getStravaEndpoint(
             self.athlete_uri
             , headers = headers
         )
@@ -128,7 +128,7 @@ class StravaHandler():
             , 'per_page': 1
         }
 
-        activities_list = self._callStravaEndpoint(
+        activities_list = self._getStravaEndpoint(
             uri=self.athlete_uri + '/activities'
             , headers=headers
             , payload=payload
@@ -141,13 +141,8 @@ class StravaHandler():
 
         headers = {'Authorization': f'Bearer {access_token}'}
 
-        resp = r.get(
-            self.activities_uri + f'/{activity_id}'
+        activity = self._getStravaEndpoint(
+            uri=self.activities_uri + f'/{activity_id}'
             , headers=headers
-            # , data = payload
         )
-
-        activity = json.loads(resp.text)
-        pp.pprint(activity)
-
-        return None
+        return activity
