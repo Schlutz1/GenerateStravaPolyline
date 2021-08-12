@@ -22,11 +22,6 @@ import time
 import os
 
 
-# TODO: refactor all REST API calls into method
-def _callStravaEndpoint():
-    ''' Private fn, makes call to Strava API'''
-    return None
-
 # handles interactions with Strava API
 class StravaHandler():
 
@@ -96,45 +91,55 @@ class StravaHandler():
 
         return access_token
 
-    def getAthleteId(self, access_token) -> str:
-        ''' use to get athlete Id from Strava API '''
-
-        header_target = f'Bearer {access_token}'
-        headers = {'Authorization': header_target}
+    def _callStravaEndpoint(self, uri, headers = None, payload = None):
+        ''' Private fn, makes call to Strava API'''
+        
+        # make get request
         resp = r.get(
-            self.athlete_uri
+            uri
             , headers=headers
+            , data=payload
         )
 
         if resp.status_code != 200:
-            print(f"{self._id}: getAthleteProfile post returned status_code != 200")
-        
-        profile = json.loads(resp.text)
-        return profile['id']
+            print(f"{self._id}: GET {uri} returned status_code != 200")
 
-    def listActivitiesById(self, access_token):
+        return json.loads(resp.text)
+
+    def getAthleteId(self, access_token) -> str:
+        ''' use to get athlete Id from Strava API '''
+
+        headers = {'Authorization': f'Bearer {access_token}'}
+        athlete_profile = self._callStravaEndpoint(
+            self.athlete_uri
+            , headers = headers
+        )
+
+        return athlete_profile['id']
+
+    def listActivities(self, access_token):
         ''' Returns the activities of an athlete for a specific athelete ID '''
         
-        header_target = f'Bearer {access_token}'
-        headers = {'Authorization': header_target}
+        headers = {'Authorization': f'Bearer {access_token}'}
         payload = {
             # 'before': 0
             # 'after': 0
             'page': 1
-            , 'per_page': 5
+            , 'per_page': 1
         }
 
-        resp = r.get(
-            self.athlete_uri + '/activities'
+        activities_list = self._callStravaEndpoint(
+            uri=self.athlete_uri + '/activities'
             , headers=headers
-            , data = payload
+            , payload=payload
         )
+
+        return activities_list
 
     def getActivityById(self, access_token, activity_id):
         ''' Returns the given activity that is owned by the authenticated athlete for a specific activity ID'''
 
-        header_target = f'Bearer {access_token}'
-        headers = {'Authorization': header_target}
+        headers = {'Authorization': f'Bearer {access_token}'}
 
         resp = r.get(
             self.activities_uri + f'/{activity_id}'

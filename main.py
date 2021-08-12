@@ -19,5 +19,14 @@ conn = sqlite3.connect(os.path.join(abs_path, db_file))
 # sandbox
 stravaHandler = StravaHandler()
 access_token = stravaHandler.getAccessToken(conn)
+print(access_token)
 
-stravaHandler.listAthleteActivities(access_token)
+# athlete_id = stravaHandler.getAthleteId(access_token=access_token)
+# print(athlete_id)
+
+z = stravaHandler.listActivities(access_token)
+print(z)
+# stravaHandler.getActivityById(
+#     access_token=access_token
+#     , activity_id=5767330559
+# )

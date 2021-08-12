@@ -1,6 +1,4 @@
 class PolylineHandler():
-    def __init__(self):
-        self.fields = ["name", "distance", "moving_time", "elapsed_time", "total_elevation_gain", "id", "start_date_local", "start_latlng", "end_latlng", "achievement_count", "map", "average_speed", "max_speed", "elev_high", "elev_low", "pr_count"]
 
     def decodePolylineData(self, mapData):
         ''' Decodes polyline data into latlong array '''
