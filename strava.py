@@ -20,6 +20,10 @@ import json
 import time
 import os
 
+# import custom type interfaces from reporter module
+from reporter import StravaActivity, StravaMap
+
+
 
 # handles interactions with Strava API
 class StravaHandler():
@@ -139,13 +143,20 @@ class StravaHandler():
             )
 
             all_activities_list += activities_list
-            # print(len(all_activities_list))
-
+            print(len(all_activities_list))
             if len(activities_list) == 0:
                 break
             else:
                 page += 1
         
+        # parse into dataclass
+        all_activities_list = [
+            StravaActivity(
+                id = activity['id']
+                , map = activity['map']
+            ) for activity in all_activities_list if activity['map']['summary_polyline'] is not None
+        ]
+
         n_activities = len(all_activities_list)
         print(f"{self._id}: returning {n_activities} activities")    
         return all_activities_list

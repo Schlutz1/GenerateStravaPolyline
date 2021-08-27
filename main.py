@@ -34,19 +34,14 @@ activities = stravaHandler.listActivities(access_token)
 # generate data for graphing
 polylines_list = [{
     'id': activity['id']
-    , 'decoded_polyline': polyline.decode(activity['map']['summary_polyline'])
+    , 'decoded_polyline': polyline.decode(activity.getSummaryPolyline())
     , 'start_date_local': activity['start_date_local']
-} for activity in activities if activity['map']['summary_polyline'] is not None]
+} for activity in activities]
 
 df_polylines = pd.DataFrame(polylines_list)
 n_activities = len(df_polylines)
 print(f"{_id}: parsed {n_activities} activities")  
 
-# df_polylines.to_sql(
-#     'polyline_cache'
-#     , conn
-#     , if_exists='replace'
-# )
 
 # generating map of runing using folium
 m = folium.Map(
