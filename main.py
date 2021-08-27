@@ -29,13 +29,7 @@ _id = "main"
 # strava interactions
 stravaHandler = StravaHandler()
 access_token = stravaHandler.getAccessToken(conn)
-# print(access_token)
-
-# athlete_id = stravaHandler.getAthleteId(access_token=access_token)
-# print(athlete_id)
-
 activities = stravaHandler.listActivities(access_token)
-# pp.pprint(activities)
 
 # generate data for graphing
 polylines_list = [{
